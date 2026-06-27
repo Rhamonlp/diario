@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Diário Digital</title>
+<style>
+  :root{
+    --bg:#05070d;
+    --paper:#0f1424;
+    --paper2:#171d31;
+    --ink:#f4f6ff;
+    --muted:#7f8db8;
+    --accent:#6c5cff;
+    --accent-dark:#00c8ff;
+    --line:#242d4b;
+    --line-soft:#11182c;
+    --danger:#ff5f7a;
+    --shadow:rgba(0,0,0,0.75);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Georgia','Times New Roman',serif;
+    background:radial-gradient(circle at top, #11182d 0%, var(--bg) 55%, #020305 100%);
+    color:var(--ink);
+    display:flex;
+    height:100vh;
+    overflow:hidden;
+  }
+  /* Sidebar */
+  #sidebar{
+    width:280px;
+    background:rgba(15,20,36,0.92);backdrop-filter:blur(10px);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    flex-shrink:0;
+  }
+  #sidebar header{
+    padding:18px 16px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  #sidebar h1{
+    font-size:20px;
+    margin:0 0 10px;
+    color:var(--accent-dark);
+  }
+  #closeSidebarBtn{
+    display:none;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:18px;
+    cursor:pointer;
+    padding:4px 8px;
+  }
+  #newEntryBtn{
+    width:100%;
+    padding:10px;
+    background:var(--accent);
+    color:#1c1408;
+    border:none;
+    border-radius:8px;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  #newEntryBtn:hover{background:var(--accent-dark);}
+  #searchBox{
+    width:100%;
+    margin-top:10px;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-family:inherit;
+    font-size:13px;
+    background:var(--paper2);
+    color:var(--ink);
+  }
+  #searchBox::placeholder{color:var(--muted);}
+  #entryList{
+    overflow-y:auto;
+    flex:1;
+    padding:6px 0;
+  }
+  .entry-item{
+    padding:12px 16px;
+    cursor:pointer;
+    border-bottom:1px solid var(--line);
+    transition:background .15s;
+  }
+  .entry-item:hover{background:var(--paper2);}
+  .entry-item.active{background:#3a2f1c;}
+  .entry-title{
+    font-weight:bold;
+    font-size:14.5px;
+    margin-bottom:3px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    color:var(--ink);
+  }
+  .entry-meta{
+    font-size:11.5px;
+    color:var(--muted);
+    display:flex;
+    justify-content:space-between;
+  }
+  .entry-tag{
+    display:inline-block;
+    background:#3a3320;
+    color:var(--accent-dark);
+    font-size:10.5px;
+    padding:1px 7px;
+    border-radius:10px;
+    margin-top:4px;
+  }
+  #sidebar footer{
+    padding:10px 16px;
+    border-top:1px solid var(--line);
+    font-size:11px;
+    color:var(--muted);
+    display:flex;
+    gap:8px;
+  }
+  #sidebar footer button{
+    flex:1;
+    background:none;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:6px;
+    font-size:11px;
+    cursor:pointer;
+    color:var(--muted);
+    font-family:inherit;
+  }
+  #sidebar footer button:hover{background:var(--paper2); color:var(--ink);}
+
+  /* Main area */
+  #main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  #toolbar{
+    padding:12px 24px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    gap:10px;
+    align-items:center;
+    background:rgba(15,20,36,0.92);backdrop-filter:blur(10px);
+    flex-wrap:wrap;
+  }
+  #toolbar input[type="text"]{
+    font-family:inherit;
+  }
+  #titleInput{
+    font-size:22px;
+    font-weight:bold;
+    border:none;
+    background:transparent;
+    flex:1;
+    min-width:150px;
+    color:var(--ink);
+  }
+  #titleInput:focus{outline:none;}
+  #titleInput::placeholder{color:var(--muted);}
+  #tagInput{
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:5px 8px;
+    font-size:12.5px;
+    width:130px;
+    background:var(--paper2);
+    color:var(--ink);
+  }
+  #tagInput::placeholder{color:var(--muted);}
+  .toolbtn{
+    border:1px solid var(--line);
+    background:var(--paper2);
+    border-radius:6px;
+    padding:6px 10px;
+    font-size:13px;
+    cursor:pointer;
+    color:var(--ink);
+    font-family:inherit;
+    white-space:nowrap;
+    transition:background .15s, border-color .15s;
+  }
+  .toolbtn:hover{background:#2c2818; border-color:var(--accent);}
+  .toolbtn.danger{color:var(--danger);}
+  #dateLabel{
+    font-size:12px;
+    color:var(--muted);
+    width:100%;
+    padding:0 24px;
+    margin-top:-4px;
+  }
+
+  #editorArea{
+    flex:1;
+    overflow-y:auto;
+    padding:10px 24px 40px;
+  }
+  #linedView{
+    background:
+      repeating-linear-gradient(var(--paper) 0px, var(--paper) 27px, var(--line-soft) 28px);
+    margin:0 -24px;
+    padding:0 24px 20px;
+  }
+  #bodyText{
+    width:100%;
+    min-height:200px;
+    border:none;
+    background:transparent;
+    resize:none;
+    font-family:'Georgia','Times New Roman',serif;
+    font-size:16px;
+    line-height:28px;
+    color:var(--ink);
+  }
+  #bodyText::placeholder{color:var(--muted);}
+  #bodyText:focus{outline:none;}
+
+  #imagesGrid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-top:10px;
+  }
+  .img-wrap{
+    position:relative;
+    width:160px;
+  }
+  .img-wrap img{
+    width:160px;
+    height:120px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1px solid var(--line);
+    display:block;
+  }
+  .img-wrap .removeImg{
+    position:absolute;
+    top:4px;
+    right:4px;
+    background:rgba(0,0,0,0.55);
+    color:#fff;
+    border:none;
+    border-radius:50%;
+    width:20px;
+    height:20px;
+    cursor:pointer;
+    font-size:12px;
+    line-height:1;
+  }
+
+  #emptyState{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    font-size:16px;
+    flex-direction:column;
+    gap:10px;
+    text-align:center;
+  }
+  #emptyState button{
+    background:var(--accent);
+    color:#1c1408;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:bold;
+  }
+  #emptyState button:hover{background:var(--accent-dark);}
+
+  /* Drawing modal */
+  #drawModal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.7);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+  }
+  #drawModal.show{display:flex;}
+  #drawBox{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px;
+    box-shadow:0 10px 30px var(--shadow);
+  }
+  #drawCanvas{
+    border:1px solid var(--line);
+    border-radius:6px;
+    cursor:crosshair;
+    background:#fff;
+    touch-action:none;
+  }
+  #drawTools{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+    align-items:center;
+    flex-wrap:wrap;
+    color:var(--ink);
+  }
+  #drawTools input[type="color"]{
+    width:34px;
+    height:30px;
+    border:none;
+    padding:0;
+    cursor:pointer;
+    background:transparent;
+  }
+  #drawTools input[type="range"]{
+    width:90px;
+  }
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:#3a3526;border-radius:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  /* Mobile topbar + overlay (hidden on desktop) */
+  #mobileTopbar{
+    display:none;
+    align-items:center;
+    gap:12px;
+    padding:10px 16px;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+  }
+  #openSidebarBtn{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-size:16px;
+    border-radius:6px;
+    padding:4px 10px;
+    cursor:pointer;
+  }
+  #mobileTitle{
+    font-size:16px;
+    font-weight:bold;
+    color:var(--accent-dark);
+  }
+  #sidebarOverlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    z-index:39;
+  }
+  #sidebarOverlay.show{display:block;}
+
+  /* ===== Responsive breakpoints ===== */
+  @media (max-width: 900px){
+    #toolbar{padding:10px 16px;}
+    #editorArea{padding:10px 16px 40px;}
+    #linedView{margin:0 -16px; padding:0 16px 20px;}
+    #dateLabel{padding:0 16px;}
+  }
+
+  @media (max-width: 768px){
+    body{overflow:hidden;}
+    #mobileTopbar{display:flex;}
+    #closeSidebarBtn{display:inline-block;}
+    #sidebar{
+      position:fixed;
+      top:0;
+      left:0;
+      height:100%;
+      z-index:40;
+      transform:translateX(-100%);
+      transition:transform .25s ease;
+      width:82vw;
+      max-width:320px;
+      box-shadow:2px 0 20px var(--shadow);
+    }
+    #sidebar.show{transform:translateX(0);}
+    #main{width:100%;}
+    #titleInput{font-size:19px;}
+    .img-wrap{width:calc(50% - 6px);}
+    .img-wrap img{width:100%;height:110px;}
+    #toolbar{gap:8px;}
+    #toolbar .toolbtn{padding:6px 8px; font-size:12.5px;}
+    #tagInput{width:110px;}
+    #drawBox{width:94vw; max-width:94vw;}
+    #drawCanvas{width:100%; height:auto; max-width:100%;}
+  }
+
+  @media (max-width: 480px){
+    #sidebar{width:88vw;}
+    #toolbar{
+      flex-wrap:wrap;
+    }
+    #titleInput{
+      flex:1 1 100%;
+      order:-1;
+      font-size:19px;
+      margin-bottom:4px;
+    }
+    #tagInput{flex:1; width:auto; min-width:90px;}
+    .img-wrap{width:100%;}
+    .img-wrap img{height:160px;}
+    #drawTools{justify-content:center;}
+    #drawTools input[type="range"]{width:70px;}
+  }
+
+  /* ===== Extra polish ===== */
+  .entry-item{transition:background .15s, transform .1s;}
+  .entry-item:active{transform:scale(0.99);}
+  .toolbtn, #newEntryBtn, #emptyState button{transition:background .15s, border-color .15s, transform .08s;}
+  .toolbtn:active, #newEntryBtn:active, #emptyState button:active{transform:scale(0.96);}
+  #editorWrap{animation:fadeIn .2s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .iconbtn{font-size:16px; padding:6px 9px; line-height:1;}
+  #pinBtn{color:var(--muted);}
+  #pinBtn.pinned{color:var(--accent); border-color:var(--accent);}
+  .pin-mark{margin-right:5px; color:var(--accent);}
+
+  #dateLabel{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  #saveStatus{
+    font-size:11.5px;
+    color:var(--muted);
+    opacity:0;
+    transition:opacity .3s;
+  }
+  #saveStatus.visible{opacity:1;}
+
+  #wordCount{
+    font-size:12px;
+    color:var(--muted);
+    text-align:right;
+    margin-top:6px;
+  }
+
+  .img-wrap img{cursor:zoom-in;}
+  .img-wrap img:hover{border-color:var(--accent);}
+
+  #lightbox{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.85);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:60;
+    cursor:zoom-out;
+  }
+  #lightbox.show{display:flex;}
+  #lightbox img{
+    max-width:90vw;
+    max-height:90vh;
+    border-radius:6px;
+    box-shadow:0 10px 40px var(--shadow);
+  }
+  #lightboxClose{
+    position:absolute;
+    top:18px;
+    right:24px;
+    background:rgba(0,0,0,0.5);
+    color:#fff;
+    border:none;
+    border-radius:50%;
+    width:34px;
+    height:34px;
+    font-size:16px;
+    cursor:pointer;
+  }
+
+  #toastContainer{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:80;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:center;
+  }
+  .toast{
+    background:var(--paper2);
+    color:var(--ink);
+    border:1px solid var(--line);
+    padding:10px 18px;
+    border-radius:8px;
+    font-size:13.5px;
+    box-shadow:0 6px 18px var(--shadow);
+    opacity:0;
+    transform:translateY(8px);
+    animation:toastIn .25s ease forwards;
+  }
+  .toast.out{animation:toastOut .25s ease forwards;}
+  @keyframes toastIn{to{opacity:1; transform:translateY(0);}}
+  @keyframes toastOut{to{opacity:0; transform:translateY(8px);}}
+
+  #confirmModal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.65);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:70;
+  }
+  #confirmModal.show{display:flex;}
+  #confirmBox{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px 22px;
+    max-width:320px;
+    box-shadow:0 10px 30px var(--shadow);
+  }
+  #confirmText{
+    font-size:15px;
+    color:var(--ink);
+    margin:0 0 16px;
+  }
+  #confirmActions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+  }
+
+  /* ===== Quadro livre (mapa mental) ===== */
+  #freeCanvas{
+    display:none;
+    position:relative;
+    width:100%;
+    min-height:1200px;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle, var(--line-soft) 1px, transparent 1px);
+    background-size:22px 22px;
+    border-radius:8px;
+    margin-top:6px;
+  }
+  .free-item{
+    position:absolute;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:var(--paper2);
+    box-shadow:0 4px 14px var(--shadow);
+    overflow:hidden;
+    user-select:none;
+  }
+  .free-item.dragging, .free-item.resizing{
+    box-shadow:0 8px 24px var(--shadow);
+    border-color:var(--accent);
+    z-index:1000;
+  }
+  .free-item img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    cursor:grab;
+    pointer-events:none;
+  }
+  .free-item.note{
+    background:#2a2718;
+    display:flex;
+    flex-direction:column;
+  }
+  .free-drag-handle{
+    height:18px;
+    background:var(--line);
+    cursor:grab;
+    flex-shrink:0;
+  }
+  .free-item img + .free-drag-handle, .free-item .img-drag-handle{
+    position:absolute;
+    top:0; left:0; right:0;
+    height:22px;
+    background:linear-gradient(rgba(0,0,0,0.45), transparent);
+    cursor:grab;
+  }
+  .note-text{
+    flex:1;
+    width:100%;
+    border:none;
+    background:transparent;
+    color:var(--ink);
+    font-family:'Georgia','Times New Roman',serif;
+    font-size:13.5px;
+    line-height:1.5;
+    resize:none;
+    outline:none;
+    padding:8px;
+  }
+  .note-text::placeholder{color:var(--muted);}
+  .item-remove{
+    position:absolute;
+    top:3px;
+    right:3px;
+    background:rgba(0,0,0,0.55);
+    color:#fff;
+    border:none;
+    border-radius:50%;
+    width:20px;
+    height:20px;
+    font-size:11px;
+    line-height:1;
+    cursor:pointer;
+    z-index:5;
+  }
+  .resize-handle{
+    position:absolute;
+    right:0;
+    bottom:0;
+    width:16px;
+    height:16px;
+    cursor:nwse-resize;
+    background:var(--accent);
+    border-top-left-radius:6px;
+    opacity:0.85;
+    z-index:5;
+  }
+  #canvasHint{
+    position:absolute;
+    top:10px;
+    left:10px;
+    font-size:12px;
+    color:var(--muted);
+    pointer-events:none;
+    z-index:1;
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebarOverlay"></div>
+<div id="sidebar">
+  <header>
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <h1>📖 Meu Diário</h1>
+      <button id="closeSidebarBtn" aria-label="Fechar menu">✕</button>
+    </div>
+    <button id="newEntryBtn">+ Nova anotação</button>
+    <input type="text" id="searchBox" placeholder="Buscar por título, texto ou tag...">
+  </header>
+  <div id="entryList"></div>
+  <footer>
+    <button id="exportBtn">Exportar backup</button>
+    <button id="importBtn">Importar backup</button>
+  </footer>
+  <input type="file" id="importFile" accept=".json" style="display:none">
+</div>
+
+<div id="main">
+  <div id="mobileTopbar">
+    <button id="openSidebarBtn" aria-label="Abrir menu">☰</button>
+    <span id="mobileTitle">📖 Meu Diário</span>
+  </div>
+  <div id="emptyState">
+    <div>Selecione uma anotação ou crie uma nova para começar ✍️</div>
+    <button onclick="createEntry()">+ Nova anotação</button>
+  </div>
+
+  <div id="editorWrap" style="display:none; flex:1; flex-direction:column;">
+    <div id="toolbar">
+      <input type="text" id="titleInput" placeholder="Título da anotação...">
+      <button class="toolbtn iconbtn" id="pinBtn" title="Favoritar">☆</button>
+      <input type="text" id="tagInput" placeholder="categoria / projeto">
+      <button class="toolbtn" id="modeToggleBtn" title="Alternar modo">🧩 Quadro livre</button>
+      <button class="toolbtn" id="addImgBtn">🖼️ Imagem</button>
+      <button class="toolbtn" id="addDrawBtn">✏️ Desenhar</button>
+      <button class="toolbtn" id="addNoteBtn" style="display:none;">🗒️ Nota</button>
+      <button class="toolbtn danger" id="deleteBtn">🗑️ Excluir</button>
+      <input type="file" id="imgFile" accept="image/*" multiple style="display:none">
+    </div>
+    <div id="dateLabel">
+      <span id="dateLabelText"></span>
+      <span id="saveStatus">Salvo</span>
+    </div>
+    <div id="editorArea">
+      <div id="linedView">
+        <textarea id="bodyText" placeholder="Escreva aqui seus pensamentos, planos, anotações do dia..."></textarea>
+        <div id="imagesGrid"></div>
+        <div id="wordCount">0 palavras</div>
+      </div>
+      <div id="freeCanvas"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Drawing Modal -->
+<div id="drawModal">
+  <div id="drawBox">
+    <canvas id="drawCanvas" width="560" height="400"></canvas>
+    <div id="drawTools">
+      <input type="color" id="drawColor" value="#2e2a25">
+      <label style="font-size:12px;">Espessura</label>
+      <input type="range" id="drawWidth" min="1" max="30" value="4">
+      <button class="toolbtn" id="clearDrawBtn">Limpar</button>
+      <button class="toolbtn" id="saveDrawBtn">Salvar no diário</button>
+      <button class="toolbtn" id="cancelDrawBtn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <img id="lightboxImg" src="">
+  <button id="lightboxClose" aria-label="Fechar">✕</button>
+</div>
+
+<!-- Toasts -->
+<div id="toastContainer"></div>
+
+<!-- Confirm modal -->
+<div id="confirmModal">
+  <div id="confirmBox">
+    <p id="confirmText"></p>
+    <div id="confirmActions">
+      <button class="toolbtn" id="confirmCancel">Cancelar</button>
+      <button class="toolbtn danger" id="confirmOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'meu_diario_entries_v1';
+let entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let currentId = null;
+
+function save(showStatus){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  if(showStatus !== false){
+    const status = document.getElementById('saveStatus');
+    status.textContent = 'Salvo';
+    status.classList.add('visible');
+    clearTimeout(window._saveTimeout);
+    window._saveTimeout = setTimeout(()=> status.classList.remove('visible'), 1200);
+  }
+}
+
+function showToast(msg){
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(()=>{
+    t.classList.add('out');
+    setTimeout(()=> t.remove(), 250);
+  }, 2200);
+}
+
+function showConfirm(text){
+  return new Promise((resolve)=>{
+    const modal = document.getElementById('confirmModal');
+    document.getElementById('confirmText').textContent = text;
+    modal.classList.add('show');
+    const okBtn = document.getElementById('confirmOk');
+    const cancelBtn = document.getElementById('confirmCancel');
+    function cleanup(result){
+      modal.classList.remove('show');
+      okBtn.onclick = null;
+      cancelBtn.onclick = null;
+      resolve(result);
+    }
+    okBtn.onclick = ()=> cleanup(true);
+    cancelBtn.onclick = ()=> cleanup(false);
+  });
+}
+
+function uid(){
+  return 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+}
+
+function fmtDate(ts){
+  const d = new Date(ts);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now); yesterday.setDate(now.getDate()-1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  const time = d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  if(isToday) return 'Hoje às ' + time;
+  if(isYesterday) return 'Ontem às ' + time;
+  return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'}) + ' às ' + time;
+}
+
+function renderList(){
+  const list = document.getElementById('entryList');
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  list.innerHTML = '';
+  const sorted = [...entries].sort((a,b)=>{
+    const pa = a.pinned ? 1 : 0, pb = b.pinned ? 1 : 0;
+    if(pa !== pb) return pb - pa;
+    return b.updatedAt - a.updatedAt;
+  });
+  let visibleCount = 0;
+  sorted.forEach(e=>{
+    const hay = (e.title + ' ' + e.body + ' ' + e.tag).toLowerCase();
+    if(q && !hay.includes(q)) return;
+    visibleCount++;
+    const div = document.createElement('div');
+    div.className = 'entry-item' + (e.id === currentId ? ' active' : '');
+    div.onclick = () => openEntry(e.id);
+    div.innerHTML = `
+      <div class="entry-title">${e.pinned ? '<span class="pin-mark">★</span>' : ''}${escapeHtml(e.title || 'Sem título')}</div>
+      <div class="entry-meta"><span>${fmtDate(e.updatedAt)}</span></div>
+      ${e.tag ? `<span class="entry-tag">${escapeHtml(e.tag)}</span>` : ''}
+    `;
+    list.appendChild(div);
+  });
+  if(visibleCount === 0){
+    const empty = document.createElement('div');
+    empty.style.padding = '20px 16px';
+    empty.style.color = 'var(--muted)';
+    empty.style.fontSize = '13px';
+    empty.textContent = entries.length === 0 ? 'Nenhuma anotação ainda.' : 'Nada encontrado para essa busca.';
+    list.appendChild(empty);
+  }
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function createEntry(){
+  const e = {
+    id: uid(),
+    title: '',
+    body: '',
+    tag: '',
+    images: [],
+    canvasItems: [],
+    freeMode: false,
+    pinned: false,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  entries.push(e);
+  save(false);
+  renderList();
+  openEntry(e.id);
+  document.getElementById('titleInput').focus();
+}
+
+function openEntry(id){
+  currentId = id;
+  const e = entries.find(x=>x.id===id);
+  if(!e) return;
+  e.canvasItems = e.canvasItems || [];
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('editorWrap').style.display = 'flex';
+  document.getElementById('titleInput').value = e.title;
+  document.getElementById('tagInput').value = e.tag || '';
+  document.getElementById('bodyText').value = e.body;
+  document.getElementById('dateLabelText').textContent = 'Criado em ' + fmtDate(e.createdAt) + (e.updatedAt !== e.createdAt ? ' · Editado em ' + fmtDate(e.updatedAt) : '');
+  document.getElementById('saveStatus').classList.remove('visible');
+  const pinBtn = document.getElementById('pinBtn');
+  pinBtn.textContent = e.pinned ? '★' : '☆';
+  pinBtn.classList.toggle('pinned', !!e.pinned);
+  updateWordCount(e.body);
+  applyViewMode(e);
+  renderImages();
+  renderFreeCanvas();
+  renderList();
+}
+
+function applyViewMode(e){
+  const isFree = !!e.freeMode;
+  document.getElementById('linedView').style.display = isFree ? 'none' : 'block';
+  document.getElementById('freeCanvas').style.display = isFree ? 'block' : 'none';
+  document.getElementById('addNoteBtn').style.display = isFree ? 'inline-block' : 'none';
+  document.getElementById('modeToggleBtn').textContent = isFree ? '📝 Modo texto' : '🧩 Quadro livre';
+  document.getElementById('addImgBtn').textContent = isFree ? '🖼️ Imagem' : '🖼️ Imagem';
+}
+
+document.getElementById('modeToggleBtn').onclick = ()=>{
+  const e = currentEntry();
+  if(!e) return;
+  e.freeMode = !e.freeMode;
+  e.updatedAt = Date.now();
+  save();
+  applyViewMode(e);
+  renderFreeCanvas();
+  showToast(e.freeMode ? 'Modo quadro livre ativado — arraste e redimensione à vontade' : 'Modo texto ativado');
+};
+
+function updateWordCount(text){
+  const words = (text || '').trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('wordCount').textContent = words + (words === 1 ? ' palavra' : ' palavras');
+}
+
+function renderImages(){
+  const e = entries.find(x=>x.id===currentId);
+  const grid = document.getElementById('imagesGrid');
+  grid.innerHTML = '';
+  if(!e) return;
+  (e.images||[]).forEach((src, idx)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'img-wrap';
+    wrap.innerHTML = `<img src="${src}"><button class="removeImg" title="Remover">✕</button>`;
+    wrap.querySelector('img').onclick = ()=> openLightbox(src);
+    wrap.querySelector('.removeImg').onclick = (ev) => {
+      ev.stopPropagation();
+      e.images.splice(idx,1);
+      e.updatedAt = Date.now();
+      save();
+      renderImages();
+    };
+    grid.appendChild(wrap);
+  });
+}
+
+// ===== Quadro livre (mapa mental) =====
+function uidShort(){
+  return 'i_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+}
+
+function addCanvasImage(src){
+  const e = currentEntry();
+  if(!e) return;
+  e.canvasItems = e.canvasItems || [];
+  const n = e.canvasItems.length;
+  e.canvasItems.push({
+    id: uidShort(),
+    type: 'image',
+    src: src,
+    x: 24 + (n % 5) * 30,
+    y: 24 + (n % 5) * 26,
+    w: 220,
+    h: 160
+  });
+  e.updatedAt = Date.now();
+  save();
+  renderFreeCanvas();
+}
+
+function addCanvasNote(){
+  const e = currentEntry();
+  if(!e) return;
+  e.canvasItems = e.canvasItems || [];
+  const n = e.canvasItems.length;
+  e.canvasItems.push({
+    id: uidShort(),
+    type: 'note',
+    text: '',
+    x: 24 + (n % 5) * 30,
+    y: 24 + (n % 5) * 26,
+    w: 200,
+    h: 140
+  });
+  e.updatedAt = Date.now();
+  save();
+  renderFreeCanvas();
+}
+
+function renderFreeCanvas(){
+  const e = currentEntry();
+  const canvas = document.getElementById('freeCanvas');
+  canvas.innerHTML = '';
+  if(!e) return;
+  const items = e.canvasItems || [];
+  if(items.length === 0){
+    const hint = document.createElement('div');
+    hint.id = 'canvasHint';
+    hint.textContent = 'Folha em branco — adicione imagens ou notas e posicione como quiser';
+    canvas.appendChild(hint);
+  }
+  items.forEach(item=>{
+    const el = document.createElement('div');
+    el.className = 'free-item' + (item.type === 'note' ? ' note' : '');
+    el.style.left = item.x + 'px';
+    el.style.top = item.y + 'px';
+    el.style.width = item.w + 'px';
+    el.style.height = item.h + 'px';
+
+    if(item.type === 'image'){
+      el.innerHTML = `
+        <img src="${item.src}">
+        <div class="img-drag-handle"></div>
+        <button class="item-remove" title="Remover">✕</button>
+        <div class="resize-handle"></div>
+      `;
+      el.querySelector('img').addEventListener('dblclick', ()=> openLightbox(item.src));
+      makeDraggable(el, el.querySelector('.img-drag-handle'), item, e);
+    } else {
+      el.innerHTML = `
+        <div class="free-drag-handle"></div>
+        <textarea class="note-text" placeholder="Escreva uma ideia, tópico do mapa mental...">${escapeHtml(item.text)}</textarea>
+        <button class="item-remove" title="Remover">✕</button>
+        <div class="resize-handle"></div>
+      `;
+      const ta = el.querySelector('.note-text');
+      ta.addEventListener('input', ()=>{
+        item.text = ta.value;
+        e.updatedAt = Date.now();
+        save();
+      });
+      makeDraggable(el, el.querySelector('.free-drag-handle'), item, e);
+    }
+
+    el.querySelector('.item-remove').onclick = (ev)=>{
+      ev.stopPropagation();
+      e.canvasItems = e.canvasItems.filter(it=>it.id !== item.id);
+      e.updatedAt = Date.now();
+      save();
+      renderFreeCanvas();
+    };
+
+    makeResizable(el.querySelector('.resize-handle'), el, item, e);
+    canvas.appendChild(el);
+  });
+}
+
+function makeDraggable(el, handle, item, entry){
+  let startX, startY, origX, origY, dragging = false;
+  handle.addEventListener('pointerdown', (ev)=>{
+    ev.preventDefault();
+    dragging = true;
+    el.classList.add('dragging');
+    startX = ev.clientX;
+    startY = ev.clientY;
+    origX = item.x;
+    origY = item.y;
+    handle.setPointerCapture(ev.pointerId);
+  });
+  handle.addEventListener('pointermove', (ev)=>{
+    if(!dragging) return;
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    item.x = Math.max(0, origX + dx);
+    item.y = Math.max(0, origY + dy);
+    el.style.left = item.x + 'px';
+    el.style.top = item.y + 'px';
+  });
+  handle.addEventListener('pointerup', (ev)=>{
+    if(!dragging) return;
+    dragging = false;
+    el.classList.remove('dragging');
+    entry.updatedAt = Date.now();
+    save();
+  });
+}
+
+function makeResizable(handle, el, item, entry){
+  let startX, startY, origW, origH, resizing = false;
+  handle.addEventListener('pointerdown', (ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    resizing = true;
+    el.classList.add('resizing');
+    startX = ev.clientX;
+    startY = ev.clientY;
+    origW = item.w;
+    origH = item.h;
+    handle.setPointerCapture(ev.pointerId);
+  });
+  handle.addEventListener('pointermove', (ev)=>{
+    if(!resizing) return;
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    item.w = Math.max(60, origW + dx);
+    item.h = Math.max(50, origH + dy);
+    el.style.width = item.w + 'px';
+    el.style.height = item.h + 'px';
+  });
+  handle.addEventListener('pointerup', (ev)=>{
+    if(!resizing) return;
+    resizing = false;
+    el.classList.remove('resizing');
+    entry.updatedAt = Date.now();
+    save();
+  });
+}
+
+document.getElementById('addNoteBtn').onclick = addCanvasNote;
+
+function openLightbox(src){
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('show');
+}
+document.getElementById('lightbox').onclick = closeLightbox;
+document.getElementById('lightboxClose').onclick = closeLightbox;
+
+function currentEntry(){
+  return entries.find(x=>x.id===currentId);
+}
+
+function updateField(field, value){
+  const e = currentEntry();
+  if(!e) return;
+  e[field] = value;
+  e.updatedAt = Date.now();
+  save();
+}
+
+document.getElementById('titleInput').addEventListener('input', (ev)=>{
+  updateField('title', ev.target.value);
+  renderList();
+});
+document.getElementById('tagInput').addEventListener('input', (ev)=>{
+  updateField('tag', ev.target.value);
+  renderList();
+});
+document.getElementById('bodyText').addEventListener('input', (ev)=>{
+  updateField('body', ev.target.value);
+  updateWordCount(ev.target.value);
+});
+
+document.getElementById('pinBtn').onclick = ()=>{
+  const e = currentEntry();
+  if(!e) return;
+  e.pinned = !e.pinned;
+  save();
+  const pinBtn = document.getElementById('pinBtn');
+  pinBtn.textContent = e.pinned ? '★' : '☆';
+  pinBtn.classList.toggle('pinned', e.pinned);
+  showToast(e.pinned ? 'Anotação fixada' : 'Anotação desfixada');
+  renderList();
+};
+
+document.getElementById('newEntryBtn').onclick = createEntry;
+document.getElementById('searchBox').addEventListener('input', renderList);
+
+document.getElementById('deleteBtn').onclick = async ()=>{
+  if(!currentId) return;
+  const ok = await showConfirm('Tem certeza que deseja excluir esta anotação? Essa ação não pode ser desfeita.');
+  if(!ok) return;
+  entries = entries.filter(e=>e.id!==currentId);
+  save(false);
+  currentId = null;
+  document.getElementById('editorWrap').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'flex';
+  renderList();
+  showToast('Anotação excluída');
+};
+
+
+// Images
+document.getElementById('addImgBtn').onclick = ()=> document.getElementById('imgFile').click();
+document.getElementById('imgFile').addEventListener('change', (ev)=>{
+  const files = Array.from(ev.target.files);
+  const e = currentEntry();
+  if(!e) return;
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      if(e.freeMode){
+        addCanvasImage(reader.result);
+      } else {
+        e.images = e.images || [];
+        e.images.push(reader.result);
+        e.updatedAt = Date.now();
+        save();
+        renderImages();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  ev.target.value = '';
+});
+
+// Drawing
+const drawModal = document.getElementById('drawModal');
+const canvas = document.getElementById('drawCanvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+ctx.fillStyle = '#fff';
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+function getPos(ev){
+  const rect = canvas.getBoundingClientRect();
+  const x = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
+  const y = (ev.touches ? ev.touches[0].clientY : ev.clientY) - rect.top;
+  return {x, y};
+}
+
+function startDraw(ev){
+  drawing = true;
+  const p = getPos(ev);
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y);
+  ev.preventDefault();
+}
+function moveDraw(ev){
+  if(!drawing) return;
+  const p = getPos(ev);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = document.getElementById('drawColor').value;
+  ctx.lineWidth = document.getElementById('drawWidth').value;
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  ev.preventDefault();
+}
+function endDraw(){ drawing = false; }
+
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', moveDraw);
+canvas.addEventListener('mouseup', endDraw);
+canvas.addEventListener('mouseleave', endDraw);
+canvas.addEventListener('touchstart', startDraw);
+canvas.addEventListener('touchmove', moveDraw);
+canvas.addEventListener('touchend', endDraw);
+
+document.getElementById('addDrawBtn').onclick = ()=>{
+  if(!currentId){ showToast('Crie ou selecione uma anotação primeiro'); return; }
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  drawModal.classList.add('show');
+};
+document.getElementById('cancelDrawBtn').onclick = ()=> drawModal.classList.remove('show');
+document.getElementById('clearDrawBtn').onclick = ()=>{
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+};
+document.getElementById('saveDrawBtn').onclick = ()=>{
+  const e = currentEntry();
+  if(!e) return;
+  const dataUrl = canvas.toDataURL('image/png');
+  if(e.freeMode){
+    addCanvasImage(dataUrl);
+  } else {
+    e.images = e.images || [];
+    e.images.push(dataUrl);
+    e.updatedAt = Date.now();
+    save();
+    renderImages();
+  }
+  drawModal.classList.remove('show');
+  showToast('Desenho adicionado');
+};
+
+// Export / Import
+document.getElementById('exportBtn').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(entries, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'diario-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup exportado');
+};
+document.getElementById('importBtn').onclick = ()=> document.getElementById('importFile').click();
+document.getElementById('importFile').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async ()=>{
+    try{
+      const imported = JSON.parse(reader.result);
+      if(Array.isArray(imported)){
+        const ok = await showConfirm('Importar irá adicionar ' + imported.length + ' anotações às existentes. Continuar?');
+        if(ok){
+          entries = entries.concat(imported);
+          save(false);
+          renderList();
+          showToast(imported.length + ' anotações importadas');
+        }
+      } else {
+        showToast('Arquivo inválido');
+      }
+    }catch(err){
+      showToast('Erro ao ler o arquivo');
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+});
+
+renderList();
+
+// Mobile sidebar toggle
+const sidebarEl = document.getElementById('sidebar');
+const overlayEl = document.getElementById('sidebarOverlay');
+
+function openSidebar(){
+  sidebarEl.classList.add('show');
+  overlayEl.classList.add('show');
+}
+function closeSidebar(){
+  sidebarEl.classList.remove('show');
+  overlayEl.classList.remove('show');
+}
+document.getElementById('openSidebarBtn').onclick = openSidebar;
+document.getElementById('closeSidebarBtn').onclick = closeSidebar;
+overlayEl.onclick = closeSidebar;
+
+// Fecha o menu automaticamente ao abrir/criar uma anotação em telas pequenas
+const originalOpenEntry = openEntry;
+openEntry = function(id){
+  originalOpenEntry(id);
+  if(window.innerWidth <= 768) closeSidebar();
+};
+
+const originalCreateEntry = createEntry;
+createEntry = function(){
+  originalCreateEntry();
+  if(window.innerWidth <= 768) closeSidebar();
+};
+
+// Atalhos de teclado
+document.addEventListener('keydown', (ev)=>{
+  if((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'n'){
+    ev.preventDefault();
+    createEntry();
+  }
+  if(ev.key === 'Escape'){
+    if(document.getElementById('lightbox').classList.contains('show')) closeLightbox();
+    else if(drawModal.classList.contains('show')) drawModal.classList.remove('show');
+    else if(document.getElementById('confirmModal').classList.contains('show')) document.getElementById('confirmCancel').click();
+    else if(sidebarEl.classList.contains('show')) closeSidebar();
+  }
+});
+
+// Gesto de deslizar (swipe) para abrir/fechar menu no mobile
+let touchStartX = null;
+document.addEventListener('touchstart', (ev)=>{
+  touchStartX = ev.touches[0].clientX;
+}, {passive:true});
+document.addEventListener('touchend', (ev)=>{
+  if(touchStartX === null || window.innerWidth > 768) return;
+  const touchEndX = ev.changedTouches[0].clientX;
+  const diff = touchEndX - touchStartX;
+  const isSidebarOpen = sidebarEl.classList.contains('show');
+  if(!isSidebarOpen && touchStartX < 24 && diff > 60){
+    openSidebar();
+  } else if(isSidebarOpen && diff < -60){
+    closeSidebar();
+  }
+  touchStartX = null;
+}, {passive:true});
+</script>
+</body>
+</html>
