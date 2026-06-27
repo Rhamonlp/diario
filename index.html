@@ -6,17 +6,17 @@
 <title>Meu Diário Digital</title>
 <style>
   :root{
-    --bg:#05070d;
-    --paper:#0f1424;
-    --paper2:#171d31;
-    --ink:#f4f6ff;
-    --muted:#7f8db8;
-    --accent:#6c5cff;
-    --accent-dark:#00c8ff;
-    --line:#242d4b;
-    --line-soft:#11182c;
-    --danger:#ff5f7a;
-    --shadow:rgba(0,0,0,0.75);
+    --bg:#030303;
+    --paper:#0d0d12;
+    --paper2:#16161f;
+    --ink:#f5f5f7;
+    --muted:#8a8aa3;
+    --accent:#8b5cf6;
+    --accent-dark:#a855f7;
+    --line:#242430;
+    --line-soft:#1a1a24;
+    --danger:#ff4d6d;
+    --shadow:rgba(0,0,0,0.85);
   }
   *{box-sizing:border-box;}
   body{
@@ -1354,3 +1354,23 @@ document.addEventListener('touchend', (ev)=>{
 </script>
 </body>
 </html>
+<style>
+#sidebar, #toolbar, #confirmBox, #drawBox{
+  box-shadow:0 8px 30px rgba(0,0,0,0.45);
+}
+.toolbtn, #newEntryBtn, #emptyState button{
+  background:linear-gradient(135deg,#1d1d28,#14141d);
+  border:1px solid #2f2f42;
+}
+.toolbtn:hover, #newEntryBtn:hover, #emptyState button:hover{
+  border-color:#8b5cf6;
+  box-shadow:0 0 15px rgba(139,92,246,0.35);
+}
+.entry-item.active{
+  background:linear-gradient(90deg,#24173f,#1b1b27);
+  border-left:4px solid #8b5cf6;
+}
+#titleInput, #bodyText{
+  text-shadow:0 0 1px rgba(255,255,255,0.1);
+}
+</style>
